@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <sys/time.h>
 
+#include "reactor.h"
 
 #define CONNECTION_SIZE 1048576
 #define MAX_PORTS       20
@@ -40,9 +41,10 @@ int set_event(int fd, int event, int flag){
     } else {
         struct epoll_event ev;
         ev.events = event;
-        ev.data.fs = fd;
+        ev.data.fd = fd;
         epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &ev);
     }
+    return 0;
 }
 
 // 为一个client fd在epoll中注册event，并在数据数组中初始化
@@ -53,13 +55,14 @@ int event_register_client(int fd, int event){
     conn_list[fd].r_action.recv_callback = recv_cb;
     conn_list[fd].send_callback = send_cb;
 
-    memset(connn_list[fd].rbuffer, 0, BUFFER_LENGTH);
-    conn_list[fd].rlength = 0;
-
     memset(conn_list[fd].rbuffer, 0, BUFFER_LENGTH);
     conn_list[fd].rlength = 0;
 
+    memset(conn_list[fd].wbuffer, 0, BUFFER_LENGTH);
+    conn_list[fd].wlength = 0;
+
     set_event(fd, event, 1);
+    return 0;
 }
 
 
@@ -154,7 +157,7 @@ int init_server(unsigned short port){
 }
 
 int main(){
-    insigned short port = 2000;
+    unsigned  short port = 2000;
 
     epfd = epoll_create(1);
 
@@ -171,7 +174,7 @@ int main(){
     // mainloop
     while(1){
         struct epoll_event events[1024] = {0};
-        int nready = epoll_wait(epfd, evnets, 1024, -1);
+        int nready = epoll_wait(epfd, events, 1024, -1);
 
         int i = 0;
         for(i = 0; i < nready; i++){
@@ -180,7 +183,7 @@ int main(){
             if(events[i].events & EPOLLIN){
                 conn_list[connfd].r_action.recv_callback(connfd);
             }
-            if(evnets[i].events & EPOLLOUT){
+            if(events[i].events & EPOLLOUT){
                 conn_list[connfd].send_callback(connfd);
             }
         }
