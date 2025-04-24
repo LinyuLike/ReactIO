@@ -4,7 +4,7 @@ LDFLAGS = -lpthread
 
 TARGET = reactor_server
 # 在这里添加新的源文件
-SRCS = reactor.c
+SRCS = reactor.c webserver.c
 OBJS = $(SRCS:.c=.o)
 # 在这里添加新的头文件
 HEADERS = reactor.h

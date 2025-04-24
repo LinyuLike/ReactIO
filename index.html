@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>简单测试页面</title>
+</head>
+<body>
+    <h1>HTTP服务器测试页面</h1>
+    <p>如果您看到这个页面，说明您的HTTP服务器工作正常！</p>
+    <p>当前时间: <span id="current-time"></span></p>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>

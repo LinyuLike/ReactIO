@@ -23,7 +23,7 @@ struct conn {
         RCALLBACK accept_callback;
     } r_action;
 
-    int status;
+    int status; // 多次收发用
 };
 
 #endif

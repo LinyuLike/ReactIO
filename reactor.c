@@ -17,13 +17,16 @@
 #define CONNECTION_SIZE 1048576
 #define MAX_PORTS       20
 
-#define HTTP_MODE   0
-#define WS_MODE     1
+#define HTTP_MODE   1
+#define WS_MODE     0
 
 // 前置声明
 int accept_cb(int fd);
 int recv_cb(int fd);
 int send_cb(int fd);
+
+int http_request(struct conn *c);
+int http_response(struct conn *c);
 
 // 全局变量
 int epfd = 0;
@@ -110,7 +113,7 @@ int recv_cb(int fd){
     conn_list[fd].rlength = count;
 
 #if HTTP_MODE
-    // TODO
+    http_request(&conn_list[fd]);
 #endif
 
 #if WS_MODE
@@ -125,7 +128,7 @@ int recv_cb(int fd){
 
 int send_cb(int fd){
 #if HTTP_MODE
-    // TODO
+    http_response(&conn_list[fd]);
 #endif
 
 #if WS_MODE
