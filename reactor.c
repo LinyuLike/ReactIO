@@ -139,7 +139,9 @@ int send_cb(int fd){
     if (conn_list[fd].wlength != 0){
         count = send(fd, conn_list[fd].wbuffer, conn_list[fd].wlength, 0);
     }
-    set_event(fd, EPOLLIN, 0);
+    if(conn_list[fd].status == 0){
+        set_event(fd, EPOLLIN, 0);
+    }
     return count;
 }
 
