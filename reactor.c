@@ -17,8 +17,15 @@
 #define CONNECTION_SIZE 1048576
 #define MAX_PORTS       20
 
-#define HTTP_MODE   1
-#define WS_MODE     0
+#define HTTP_MODE   0
+#define WS_MODE     1
+
+// 模式宏只能有一个为1
+// 当 HTTP_MODE 设为 1，WS_MODE 设为 0 时，程序会编译和执行 HTTP 相关的代码
+// 当 HTTP_MODE 设为 0，WS_MODE 设为 1 时，程序会编译和执行 WebSocket 相关的代码
+#if (HTTP_MODE == 1 && WS_MODE == 1) || (HTTP_MODE == 0 && WS_MODE == 0)
+#error "Invalid configuration: exactly one of HTTP_MODE or WS_MODE must be set to 1"
+#endif
 
 // 前置声明
 int accept_cb(int fd);
@@ -27,6 +34,10 @@ int send_cb(int fd);
 
 int http_request(struct conn *c);
 int http_response(struct conn *c);
+
+int ws_request(struct conn *c);
+int ws_response(struct conn *c);
+
 
 // 全局变量
 int epfd = 0;
@@ -117,7 +128,7 @@ int recv_cb(int fd){
 #endif
 
 #if WS_MODE
-    // TODO
+    ws_request(&conn_list[fd]);
 #endif
 
     // 将监听事件更改为监听可写
@@ -132,16 +143,30 @@ int send_cb(int fd){
 #endif
 
 #if WS_MODE
-    // TODO
+    ws_response(&conn_list[fd]);
 #endif
 
     int count = 0;
     if (conn_list[fd].wlength != 0){
         count = send(fd, conn_list[fd].wbuffer, conn_list[fd].wlength, 0);
     }
+
+    // 发送数据后，如果是http模式且状态为0，就切换回EPOLLIN
+    // 如果是ws模式且状态为1，还切换回EPOLLIN
+    // 这种差异是两种模式不同的state值代表的状态不同导致的
+#if HTTP_MODE
     if(conn_list[fd].status == 0){
         set_event(fd, EPOLLIN, 0);
     }
+#endif
+
+#if WS_MODE
+    if(conn_list[fd].status == 1 || conn_list[fd].status == 0){
+        set_event(fd, EPOLLIN, 0);
+    }
+#endif
+
+    
     return count;
 }
 

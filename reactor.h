@@ -24,6 +24,9 @@ struct conn {
     } r_action;
 
     int status; // 多次收发用
+
+    char *payload;        // 用于存储解码后的WebSocket数据
+    char mask[4];         // 用于存储WebSocket帧的掩码
 };
 
 #endif
